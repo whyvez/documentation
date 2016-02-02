@@ -96,10 +96,9 @@ Now you have a working integration with the Google Cloud that will automatically
 
 ## Google Container Engine
 
-Our container also works with the Google Container Engine and Container Registry. At first we will set up a [push step]({{ site.baseurl }}{% post_url docker/tutorials/2015-08-12-docker-pull %}) to push a container to the registry. Then a script will authenticate with Google and interact with kubectl to start the service.
+Our container also works with the Google Container Engine and Container Registry. At first we will set up a [push step]({{ site.baseurl }}{% post_url docker/tutorials/2015-07-03-docker-push %}) to push a container to the registry. Then a script will authenticate with Google and interact with kubectl to start the service.
 
-
-At first we define the gcr_dockercfg service container in the ***codeship-services.yml*** file which will create temporary credentials for us. You can check out the code behind the container in the [codeship-library/gcr-dockercfg-generator](https://github.com/codeship-library/gcr-dockercfg-generator) repository. Make sure the environment variables mentioned above are set up in the encrypted_env_file.
+First we define the [dockercfg generator service]({{ site.baseurl }}{% post_url dockertutorials/2015-12-17-dockercfg-services %}) container in the ***codeship-services.yml*** file which will create temporary credentials for us. You can check out the code behind the container in the [codeship-library/gcr-dockercfg-generator](https://github.com/codeship-library/gcr-dockercfg-generator) repository. Make sure the environment variables mentioned above are set up in the encrypted_env_file.
 
 ```yaml
 gcr_dockercfg:
@@ -108,7 +107,7 @@ gcr_dockercfg:
   encrypted_env_file: environment.encrypted
 ```
 
-Now we can reference the service in the push step configuration and set up the deployment to the Google registry.
+Now we can reference the service in the push step configuration and set up the deployment to the Google Container Registry.
 
 ```yaml
 - service: app
