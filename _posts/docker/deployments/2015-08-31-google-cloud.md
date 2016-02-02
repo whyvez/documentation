@@ -96,7 +96,32 @@ Now you have a working integration with the Google Cloud that will automatically
 
 ## Google Container Engine
 
-Our container also works with the Google Container Engine and Container Registry. The following script will first authenticate with Google, then push a container according to the [Google Container Registry documentation](https://cloud.google.com/container-registry/) and then interact with kubectl to start the service.
+Our container also works with the Google Container Engine and Container Registry. At first we will set up a [push step]({{ site.baseurl }}{% post_url docker/tutorials/2015-08-12-docker-pull %}) to push a container to the registry. Then a script will authenticate with Google and interact with kubectl to start the service.
+
+
+At first we define the gcr_dockercfg service container in the ***codeship-services.yml*** file which will create temporary credentials for us. You can check out the code behind the container in the [codeship-library/gcr-dockercfg-generator](https://github.com/codeship-library/gcr-dockercfg-generator) repository. Make sure the environment variables mentioned above are set up in the encrypted_env_file.
+
+```yaml
+gcr_dockercfg:
+  image: codeship/gcr-dockercfg-generator
+  add_docker: true
+  encrypted_env_file: environment.encrypted
+```
+
+Now we can reference the service in the push step configuration and set up the deployment to the Google registry.
+
+```yaml
+- service: app
+  type: push
+  image_name: gcr.io/company_name/container_name
+  registry: https://gcr.io
+  dockercfg_service: gcr_dockercfg
+# Set up script that interacts with Gcloud after the container push
+- service: deployment
+  command: /deploy/test/deploy_to_google.sh
+```
+
+Here is an example script you could use to interact with the Google Cloud registry.
 
 ```bash
 #!/bin/bash
@@ -111,12 +136,6 @@ codeship_google authenticate
 
 echo "Setting default timezone $DEFAULT_ZONE"
 gcloud config set compute/zone $DEFAULT_ZONE
-
-echo "Tagging the Docker machine for Google Container Registry push"
-docker tag -f codeship/google-deployment-example $GOOGLE_CONTAINER_NAME
-
-echo "Pushing to Google Container Registry: $GOOGLE_CONTAINER_NAME"
-gcloud docker push $GOOGLE_CONTAINER_NAME
 
 echo "Starting Cluster on GCE for $KUBERNETES_APP_NAME"
 gcloud container clusters create $KUBERNETES_APP_NAME \
